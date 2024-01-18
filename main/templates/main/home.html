@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>babuicode</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <form action="/" method="POST">
+        {% csrf_token %}
+        <label for="parenthesis">
+            parenthesis
+            <input type="text" name="parenthesis" minlength="1">
+        </label>
+        <label for="rules">
+            rules
+            <input type="hidden" name="rules">
+            <button class="add">add</button>
+        </label>
+        <button class="download">download babui</button>
+        <a class="download" style="display:none" download="my.babui"></a>
+    </form>
+    <script>
+        let ruleCounter = 0
+        let ruleIndices = []
+        let rules = document.querySelector('label[for="rules"]')
+        let addRule = rules.querySelector('.add')
+        addRule.addEventListener('click', e => {
+            e.preventDefault()
+            let rule = document.createElement('label')
+            rule.index = ruleCounter
+            ruleCounter++
+
+            let input = document.createElement('textarea')
+            let output = document.createElement('textarea')
+            input.setAttribute('name', `input${rule.index}`)
+            output.setAttribute('name', `output${rule.index}`)
+
+            let removeButton = document.createElement('button')
+            removeButton.rule = rule
+            removeButton.innerHTML = 'remove'
+            removeButton.addEventListener('click', e => {
+                e.preventDefault()
+                ruleIndices = ruleIndices.filter(i => i != rule.index)
+                e.target.rule.remove()
+            })
+
+            rule.appendChild(input)
+            rule.appendChild(output)
+            rule.appendChild(removeButton)
+
+            rules.appendChild(rule)
+
+            ruleIndices.push(rule.index)
+        })
+        addRule.click()
+
+        let download = document.querySelector('button.download')
+        let downloada = document.querySelector('a.download')
+        download.addEventListener('click', e => {
+            e.preventDefault()
+            let babui = {}
+            babui['parenthesis'] = document.querySelector('input[name="parenthesis"]').value.toString()
+            let rules = []
+            for (let i of ruleIndices) {
+                let input = document.querySelector(`textarea[name="input${i}"]`).value.toString()
+                let output = document.querySelector(`textarea[name="output${i}"]`).value.toString()
+                if (input.length == 0) {
+                    continue
+                }
+                rules.push([input, output])
+            }
+            babui['rules'] = rules
+
+            babui = JSON.stringify(babui)
+            downloada.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(babui))
+            downloada.click()
+        })
+    </script>
+</body>
+</html>
